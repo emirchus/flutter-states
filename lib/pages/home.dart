@@ -1,17 +1,34 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_states/models/user.dart';
+import 'package:flutter_states/services/user_service.dart';
+import 'package:provider/provider.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final userService = Provider.of<UserService>(context);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Home Page'),
+        actions: [
+          IconButton(
+            onPressed: userService.logOut,
+            icon: const Icon(Icons.exit_to_app),
+          ),
+        ],
       ),
-      body: const Center(
-        child: UserInformation(),
-      ),
+      body: userService.isLoggedIn
+          ? Center(
+              child: UserInformation(
+                user: userService.user!,
+              ),
+            )
+          : const Center(
+              child: Text("No user logged in"),
+            ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => Navigator.of(context).pushNamed("other"),
         child: const Icon(Icons.accessible_sharp),
@@ -21,7 +38,9 @@ class HomePage extends StatelessWidget {
 }
 
 class UserInformation extends StatelessWidget {
-  const UserInformation({super.key});
+  final User user;
+
+  const UserInformation({super.key, required this.user});
 
   @override
   Widget build(BuildContext context) {
@@ -31,29 +50,30 @@ class UserInformation extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: const [
-          Text(
+        children: [
+          const Text(
             "General",
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
-          Divider(),
+          const Divider(),
           ListTile(
-            title: Text("Nombre:"),
-            subtitle: Text("Juan"),
+            title: const Text("Nombre:"),
+            subtitle: Text(user.name),
           ),
           ListTile(
-            title: Text("Edad:"),
-            subtitle: Text("Juan"),
+            title: const Text("Edad:"),
+            subtitle: Text((user.age).toString()),
           ),
-          Text(
+          const Text(
             "Profesiones",
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
-          Divider(),
-          ListTile(
-            title: Text("Profesor:"),
-            subtitle: Text("1 año"),
-          ),
+          const Divider(),
+          ...user.profesiones
+              .map<Widget>((e) => ListTile(
+                    title: Text(e),
+                  ))
+              .toList()
         ],
       ),
     );
